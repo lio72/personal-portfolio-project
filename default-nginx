@@ -1,0 +1,78 @@
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        server_name _;
+
+        location / {
+                proxy_pass http://127.0.0.1:5004/$uri;
+        }
+
+        location /landingpage {
+                proxy_pass http://127.0.0.1:5003/$uri;
+        }
+
+        location ~ /(airbnb-dynamic/)?number_odd_or_even/([0-9]+).* {
+                rewrite ^/airbnb-dynamic/(number_odd_or_even)/([0-9]+).* /$1/$2;
+                proxy_pass http://127.0.0.1:5001/$uri;
+        }
+
+
+        location /api/ {
+                proxy_pass http://127.0.0.1:5002/$uri;
+        }
+
+        location ~ \.php$ {
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/var/run/php/phpX.X-fpm.sock;
+        }
+}
+
+# manged by cerbot nb: cerbot is install on my nginx server
+server {
+    server_name dakyam.tech www.dakyam.tech; # managed by Certbot
+
+        location / {
+                proxy_pass http://127.0.0.1:5004/$uri;
+        }
+
+        location /landingpage {
+                proxy_pass http://127.0.0.1:5003/$uri;
+        }
+
+        location ~ /(airbnb-dynamic/)?number_odd_or_even/([0-9]+).* {
+                rewrite ^/airbnb-dynamic/(number_odd_or_even)/([0-9]+).* /$1/$2;
+                proxy_pass http://127.0.0.1:5001/$uri;
+        }
+
+
+        location /api/ {
+                proxy_pass http://127.0.0.1:5002/$uri;
+        }
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/dakyam.tech/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/dakyam.tech/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+
+}server {
+    if ($host = www.dakyam.tech) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = dakyam.tech) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+        listen 80 ;
+        listen [::]:80 ;
+    server_name dakyam.tech www.dakyam.tech;
+    return 404; # managed by Certbot
+
+}
